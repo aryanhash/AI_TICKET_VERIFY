@@ -4,8 +4,12 @@
 
 [![QIE Blockchain](https://img.shields.io/badge/Blockchain-QIE-blue)](https://docs.qie.digital)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+Youtube link - https://www.youtube.com/watch?v=q2kn6yERfQg
 
 ---
+
+<img width="1693" height="867" alt="image" src="https://github.com/user-attachments/assets/15cadf41-aa59-4856-8557-9c3d681ca253" />
+
 
 ## 📖 Table of Contents
 
@@ -47,23 +51,23 @@ Imagine you're going to a concert:
 
 ## 🔥 Problems It Solves
 
-### 1. **Ticket Fraud & Scalping** ❌
+### 1. **Ticket Fraud & Scalping** 
 - **Problem**: People buy tickets and resell them at inflated prices or sell fake tickets
 - **Solution**: AI verifies the person matches the ticket owner, preventing unauthorized transfers
 
-### 2. **Counterfeit Tickets** ❌
+### 2. **Counterfeit Tickets** 
 - **Problem**: Fake tickets are easy to create and hard to detect
 - **Solution**: Blockchain ensures every ticket is unique and verifiable
 
-### 3. **Double-Spending** ❌
+### 3. **Double-Spending** 
 - **Problem**: Same ticket used multiple times or sold to multiple people
 - **Solution**: Blockchain's immutable records prevent duplicate usage
 
-### 4. **Manual Verification** ❌
+### 4. **Manual Verification** 
 - **Problem**: Slow, error-prone manual ticket checking at events
 - **Solution**: AI-powered instant verification in seconds
 
-### 5. **High Transaction Costs** ❌
+### 5. **High Transaction Costs** 
 - **Problem**: Ethereum gas fees can be expensive
 - **Solution**: QIE Blockchain offers ultra-low fees (~$0.001 per transaction)
 
@@ -314,7 +318,6 @@ PINATA_SECRET_API_KEY=your-pinata-secret-key
 6. Copy the contract address
 7. Update `QIE_CONTRACT_ADDRESS` in your `.env` file
 
-📖 **Detailed Guide**: See [QIEDEX_TOKEN_CREATOR_GUIDE.md](./QIEDEX_TOKEN_CREATOR_GUIDE.md)
 
 ### Step 7: Configure MetaMask for QIE Network
 
@@ -388,7 +391,7 @@ curl -X POST http://localhost:8000/auth/make-organizer/0xYourWalletAddress
 ### For Event Organizers
 
 #### 1. Connect Your Wallet
-- Open http://localhost:5000
+- Open the url...
 - Click "Connect Wallet"
 - Approve MetaMask connection
 - Sign the authentication message
@@ -398,7 +401,7 @@ curl -X POST http://localhost:8000/auth/make-organizer/0xYourWalletAddress
 - Or ask an admin to do it
 
 #### 3. Create an Event
-- Go to http://localhost:5000/organizer/create
+- Go to http://deployedlink
 - Fill in event details:
   - Event title
   - Description
@@ -423,7 +426,6 @@ curl -X POST http://localhost:8000/auth/make-organizer/0xYourWalletAddress
 - Ensure you're on QIE testnet
 
 #### 2. Browse Events
-- Go to http://localhost:5000/events
 - Browse available events
 - Click on an event to see details
 
@@ -435,7 +437,6 @@ curl -X POST http://localhost:8000/auth/make-organizer/0xYourWalletAddress
 - You'll receive a QR code
 
 #### 4. View Your Tickets
-- Go to http://localhost:5000/dashboard
 - See all your purchased tickets
 - Click "Show QR Code" to display the QR code
 
@@ -685,7 +686,7 @@ brew services start mongodb-community
 - Check API key is set correctly
 - Verify API key has credits/quota
 - Check `AI_PROVIDER` is set correctly
-- See [FREE_AI_APIS_GUIDE.md](./FREE_AI_APIS_GUIDE.md) for alternatives
+
 
 #### 7. IPFS upload failed
 - Check Pinata credentials (if using)
@@ -711,14 +712,6 @@ brew services start mongodb-community
 ---
 
 ## 📚 Support & Resources
-
-### Documentation
-- [Complete Documentation](./DOCUMENTATION.md)
-- [Setup Guide](./SETUP.md)
-- [QIEDEX Token Creator Guide](./QIEDEX_TOKEN_CREATOR_GUIDE.md)
-- [QIE Validator Guide](./QIE_VALIDATOR_GUIDE.md)
-- [Verification Guide](./VERIFICATION_GUIDE.md)
-- [MongoDB Setup](./MONGODB_SETUP.md)
 
 ### QIE Blockchain Resources
 - **QIE Documentation**: https://docs.qie.digital
@@ -760,35 +753,6 @@ brew services start mongodb-community
    - How face recognition works
    - AI model comparison
    - Verification accuracy
-
----
-
-## 🚀 Quick Start Summary
-
-```bash
-# 1. Clone and install
-git clone <repo>
-cd PerfectCleanEnd
-python3 -m venv venv && source venv/bin/activate
-cd server && pip install -r requirements.txt
-cd ../client && npm install
-
-# 2. Configure
-# Create server/.env with all required variables
-# Deploy contract via QIEDEX Token Creator
-# Add QIE network to MetaMask
-
-# 3. Start services
-# Terminal 1: Backend
-cd server && python -m uvicorn main:app --reload
-
-# Terminal 2: Frontend
-cd client && npm run dev
-
-# 4. Use the app
-# Open http://localhost:5000
-# Connect wallet, create events, buy tickets!
-```
 
 ---
 
