@@ -4,6 +4,7 @@
 
 [![QIE Blockchain](https://img.shields.io/badge/Blockchain-QIE-blue)](https://docs.qie.digital)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+Youtube link - https://www.youtube.com/watch?v=q2kn6yERfQg
 
 ---
 
