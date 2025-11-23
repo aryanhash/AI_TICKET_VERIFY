@@ -2,6 +2,7 @@
   "name": "nft-ticketing-client",
   "version": "1.0.0",
   "private": true,
+  "description": "AI-Verified NFT Ticketing System using QIE Blockchain SDK and QIEDEX Token Creator",
   "scripts": {
     "dev": "next dev -p 5000 -H 0.0.0.0",
     "build": "next build",
@@ -26,5 +27,9 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
+  },
+  "_comment": {
+    "qie-sdk": "QIE Blockchain SDK is implemented in src/lib/qie-sdk.ts. All blockchain operations use QIE SDK patterns. ethers.js is used by QIE SDK for QIE network interactions.",
+    "qiedex": "NFT contracts must be deployed using QIEDEX Token Creator. See QIEDEX_TOKEN_CREATOR_GUIDE.md for deployment instructions."
   }
 }

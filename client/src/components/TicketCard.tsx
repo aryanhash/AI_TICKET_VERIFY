@@ -63,6 +63,15 @@ export default function TicketCard({ ticket }: TicketCardProps) {
             <p className="text-xs text-center text-gray-500 mt-2">
               Scan this QR code at the event entrance
             </p>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(ticket.qr_code_data);
+                alert('QR code data copied to clipboard!');
+              }}
+              className="mt-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-md text-sm font-semibold transition-colors"
+            >
+              📋 Copy QR Data
+            </button>
           </div>
         )}
       </div>

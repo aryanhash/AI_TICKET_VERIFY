@@ -1,6 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import auth, events, tickets, verify
+from routes import auth, events, tickets, verify, validator
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = FastAPI(title="NFT Ticketing API", version="1.0.0")
 
@@ -16,6 +21,7 @@ app.include_router(auth.router)
 app.include_router(events.router)
 app.include_router(tickets.router)
 app.include_router(verify.router)
+app.include_router(validator.router)
 
 @app.get("/")
 async def root():
@@ -26,7 +32,8 @@ async def root():
             "auth": "/auth/wallet",
             "events": "/events",
             "tickets": "/tickets",
-            "verify": "/verify"
+            "verify": "/verify",
+            "validator": "/validator"
         }
     }
 

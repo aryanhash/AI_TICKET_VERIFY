@@ -17,30 +17,40 @@ export default function Navbar() {
   }, []);
 
   const handleConnect = async () => {
-    const result = await connectWallet();
-    if (!result) return;
-
-    const { address } = result;
-    const message = `Sign this message to login to NFT Ticketing System.\nNonce: ${Date.now()}`;
-    
-    const signature = await signMessage(message);
-    if (!signature) {
-      alert('Failed to sign message');
-      return;
-    }
-
     try {
+      console.log('Starting wallet connection...');
+      const result = await connectWallet();
+      if (!result) {
+        console.error('Wallet connection failed');
+        return;
+      }
+
+      const { address } = result;
+      console.log('Wallet connected, address:', address);
+      
+      const message = `Sign this message to login to NFT Ticketing System.\nNonce: ${Date.now()}`;
+      console.log('Requesting signature...');
+      
+      const signature = await signMessage(message);
+      if (!signature) {
+        alert('Failed to sign message. Please try again.');
+        return;
+      }
+
+      console.log('Signature received, logging in...');
       const loginResult = await walletLogin(address, signature, message);
+      
       setWalletAddress(address);
       setIsOrganizer(loginResult.is_organizer || false);
       
       localStorage.setItem('walletAddress', address);
       localStorage.setItem('isOrganizer', String(loginResult.is_organizer || false));
       
-      alert('Connected successfully!');
-    } catch (error) {
+      alert(`Connected successfully! ${loginResult.is_organizer ? 'You are an organizer.' : ''}`);
+    } catch (error: any) {
       console.error('Login failed:', error);
-      alert('Login failed');
+      const errorMessage = error.response?.data?.detail || error.message || 'Login failed';
+      alert(`Login failed: ${errorMessage}`);
     }
   };
 

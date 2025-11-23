@@ -89,7 +89,7 @@ export default function CreateEvent() {
               value={formData.title}
               onChange={handleChange}
               required
-              className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-qie-primary focus:border-transparent"
+              className="w-full border border-gray-300 rounded-md px-4 py-2 text-gray-900 bg-white focus:ring-2 focus:ring-qie-primary focus:border-transparent"
             />
           </div>
 
@@ -103,7 +103,7 @@ export default function CreateEvent() {
               onChange={handleChange}
               required
               rows={4}
-              className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-qie-primary focus:border-transparent"
+              className="w-full border border-gray-300 rounded-md px-4 py-2 text-gray-900 bg-white focus:ring-2 focus:ring-qie-primary focus:border-transparent"
             />
           </div>
 
@@ -118,7 +118,7 @@ export default function CreateEvent() {
                 value={formData.date}
                 onChange={handleChange}
                 required
-                className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-qie-primary focus:border-transparent"
+                className="w-full border border-gray-300 rounded-md px-4 py-2 text-gray-900 bg-white focus:ring-2 focus:ring-qie-primary focus:border-transparent"
               />
             </div>
 
@@ -132,7 +132,7 @@ export default function CreateEvent() {
                 value={formData.venue}
                 onChange={handleChange}
                 required
-                className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-qie-primary focus:border-transparent"
+                className="w-full border border-gray-300 rounded-md px-4 py-2 text-gray-900 bg-white focus:ring-2 focus:ring-qie-primary focus:border-transparent"
               />
             </div>
           </div>
@@ -150,7 +150,7 @@ export default function CreateEvent() {
                 required
                 step="0.01"
                 min="0"
-                className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-qie-primary focus:border-transparent"
+                className="w-full border border-gray-300 rounded-md px-4 py-2 text-gray-900 bg-white focus:ring-2 focus:ring-qie-primary focus:border-transparent"
               />
             </div>
 
@@ -165,7 +165,7 @@ export default function CreateEvent() {
                 onChange={handleChange}
                 required
                 min="1"
-                className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-qie-primary focus:border-transparent"
+                className="w-full border border-gray-300 rounded-md px-4 py-2 text-gray-900 bg-white focus:ring-2 focus:ring-qie-primary focus:border-transparent"
               />
             </div>
           </div>

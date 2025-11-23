@@ -34,12 +34,28 @@ async def wallet_login(user_data: UserCreate):
 
 @router.post("/make-organizer/{wallet_address}")
 async def make_organizer(wallet_address: str):
-    result = users_collection.update_one(
-        {"wallet_address": wallet_address.lower()},
-        {"$set": {"is_organizer": True}}
-    )
-    
-    if result.modified_count > 0:
-        return {"message": "User is now an organizer"}
-    
-    raise HTTPException(status_code=404, detail="User not found")
+    try:
+        # First, ensure user exists
+        existing_user = users_collection.find_one({"wallet_address": wallet_address.lower()})
+        if not existing_user:
+            # Create user if doesn't exist
+            new_user = {
+                "wallet_address": wallet_address.lower(),
+                "is_organizer": True,
+                "created_at": datetime.utcnow()
+            }
+            users_collection.insert_one(new_user)
+            return {"message": "User created and set as organizer"}
+        
+        # Update existing user
+        result = users_collection.update_one(
+            {"wallet_address": wallet_address.lower()},
+            {"$set": {"is_organizer": True}}
+        )
+        
+        if result.modified_count > 0 or existing_user.get("is_organizer", False):
+            return {"message": "User is now an organizer"}
+        
+        return {"message": "User is already an organizer"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")

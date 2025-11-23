@@ -1,18 +1,33 @@
-from web3 import Web3
-from eth_account.messages import encode_defunct
+"""
+Blockchain Service using QIE Blockchain SDK
+This service uses QIE SDK for all blockchain operations:
+- Wallet signature verification (QIE SDK)
+- Reading NFT ownership (QIE SDK)
+- Minting NFT tickets (QIE SDK)
+"""
+
 import json
 import os
+from dotenv import load_dotenv
+from typing import Optional
 
-try:
-    from web3.middleware import geth_poa_middleware
-except ImportError:
-    geth_poa_middleware = None
+# Load environment variables from .env file
+load_dotenv()
 
-QIE_RPC_URL = os.getenv("QIE_RPC_URL", "https://rpc-mainnet.qie.digital")
-QIE_CHAIN_ID = 5656
-CONTRACT_ADDRESS = os.getenv("NFT_CONTRACT_ADDRESS", "")
+# Import QIE Blockchain SDK
+from .qie_sdk import (
+    create_qie_web3,
+    load_qie_contract,
+    create_qie_signature_verifier,
+    QIENFT
+)
+
+QIE_RPC_URL = os.getenv("QIE_RPC_URL", "https://rpc1testnet.qie.digital")
+CONTRACT_ADDRESS = os.getenv("QIE_CONTRACT_ADDRESS", "")
 ORGANIZER_PRIVATE_KEY = os.getenv("ORGANIZER_PRIVATE_KEY", "")
 
+# NFT ABI from QIEDEX Token Creator
+# This ABI should match the contract deployed via QIEDEX Token Creator
 NFT_ABI = [
     {
         "inputs": [
@@ -54,107 +69,104 @@ NFT_ABI = [
     }
 ]
 
+
 class BlockchainService:
+    """
+    Blockchain Service using QIE Blockchain SDK
+    All blockchain operations use QIE SDK as required
+    """
+    
     def __init__(self):
-        self.w3 = Web3(Web3.HTTPProvider(QIE_RPC_URL))
-        if geth_poa_middleware:
-            self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+        # Initialize QIE Web3 provider using QIE SDK
+        self.qie_web3 = create_qie_web3(QIE_RPC_URL)
+        
+        # Initialize QIE signature verifier using QIE SDK
+        self.signature_verifier = create_qie_signature_verifier(QIE_RPC_URL)
+        
+        # Load QIE contract from QIEDEX Token Creator using QIE SDK
+        self.qie_contract = None
+        self.qie_nft = None
         
         if CONTRACT_ADDRESS:
-            self.contract = self.w3.eth.contract(
-                address=Web3.to_checksum_address(CONTRACT_ADDRESS),
-                abi=NFT_ABI
-            )
-        else:
-            self.contract = None
+            try:
+                self.qie_contract = load_qie_contract(
+                    CONTRACT_ADDRESS,
+                    NFT_ABI,
+                    QIE_RPC_URL
+                )
+                self.qie_nft = QIENFT(self.qie_contract)
+            except Exception as e:
+                print(f"Error loading QIE contract: {e}")
+                self.qie_contract = None
+                self.qie_nft = None
     
     def verify_signature(self, message: str, signature: str, wallet_address: str) -> bool:
-        try:
-            message_hash = encode_defunct(text=message)
-            recovered_address = self.w3.eth.account.recover_message(message_hash, signature=signature)
-            return recovered_address.lower() == wallet_address.lower()
-        except Exception as e:
-            print(f"Signature verification error: {e}")
-            return False
+        """
+        Verify wallet signature using QIE Blockchain SDK
+        
+        Args:
+            message: Original message that was signed
+            signature: Signature hex string
+            wallet_address: Expected wallet address
+            
+        Returns:
+            True if signature is valid
+        """
+        return self.signature_verifier.verify(message, signature, wallet_address)
     
     async def mint_ticket(self, wallet_address: str, metadata_uri: str) -> dict:
-        if not self.contract or not ORGANIZER_PRIVATE_KEY:
-            raise Exception("Contract not initialized or private key not set")
+        """
+        Mint NFT ticket using QIE Blockchain SDK
         
-        try:
-            checksum_address = Web3.to_checksum_address(wallet_address)
+        Args:
+            wallet_address: Recipient wallet address
+            metadata_uri: IPFS URI for ticket metadata
             
-            account = self.w3.eth.account.from_key(ORGANIZER_PRIVATE_KEY)
-            
-            nonce = self.w3.eth.get_transaction_count(account.address)
-            
-            transaction = self.contract.functions.mint(
-                checksum_address,
-                metadata_uri
-            ).build_transaction({
-                'chainId': QIE_CHAIN_ID,
-                'gas': 300000,
-                'gasPrice': self.w3.eth.gas_price,
-                'nonce': nonce,
-            })
-            
-            signed_txn = self.w3.eth.account.sign_transaction(transaction, ORGANIZER_PRIVATE_KEY)
-            tx_hash = self.w3.eth.send_raw_transaction(signed_txn.raw_transaction)
-            
-            tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
-            
-            total_supply = self.contract.functions.totalSupply().call()
-            token_id = total_supply - 1
-            
-            return {
-                "success": True,
-                "tx_hash": tx_hash.hex(),
-                "token_id": token_id,
-                "transaction_receipt": dict(tx_receipt)
-            }
-        except Exception as e:
-            print(f"Minting error: {e}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
+        Returns:
+            Transaction result with tx_hash and token_id
+        """
+        if not self.qie_contract or not ORGANIZER_PRIVATE_KEY:
+            raise Exception("QIE contract not initialized or private key not set. Please deploy contract using QIEDEX Token Creator.")
+        
+        # Use QIE SDK to mint ticket
+        result = self.qie_contract.mint(
+            wallet_address,
+            metadata_uri,
+            ORGANIZER_PRIVATE_KEY
+        )
+        
+        return result
     
     async def get_tickets_of_owner(self, wallet_address: str) -> list:
-        if not self.contract:
+        """
+        Get all tickets owned by a wallet using QIE Blockchain SDK
+        
+        Args:
+            wallet_address: Wallet address to query
+            
+        Returns:
+            List of tickets with token_id and token_uri
+        """
+        if not self.qie_nft:
             return []
         
-        try:
-            checksum_address = Web3.to_checksum_address(wallet_address)
-            balance = self.contract.functions.balanceOf(checksum_address).call()
-            
-            tickets = []
-            total_supply = self.contract.functions.totalSupply().call()
-            
-            for token_id in range(total_supply):
-                try:
-                    owner = self.contract.functions.ownerOf(token_id).call()
-                    if owner.lower() == checksum_address.lower():
-                        token_uri = self.contract.functions.tokenURI(token_id).call()
-                        tickets.append({
-                            "token_id": token_id,
-                            "token_uri": token_uri
-                        })
-                except:
-                    continue
-            
-            return tickets
-        except Exception as e:
-            print(f"Error fetching tickets: {e}")
-            return []
+        # Use QIE SDK to get tickets
+        return self.qie_nft.get_tickets_of_owner(wallet_address)
     
     def get_token_uri(self, token_id: int) -> str:
-        if not self.contract:
+        """
+        Get token URI using QIE Blockchain SDK
+        
+        Args:
+            token_id: Token ID to query
+            
+        Returns:
+            Token URI string
+        """
+        if not self.qie_contract:
             return ""
         
-        try:
-            return self.contract.functions.tokenURI(token_id).call()
-        except Exception as e:
-            print(f"Error fetching token URI: {e}")
-            return ""
+        # Use QIE SDK to get token URI
+        return self.qie_contract.get_token_uri(token_id)
 
 blockchain_service = BlockchainService()

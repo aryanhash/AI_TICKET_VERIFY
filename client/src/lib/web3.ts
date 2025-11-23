@@ -1,82 +1,87 @@
-import { ethers, BrowserProvider } from 'ethers';
+/**
+ * Web3 Integration using QIE Blockchain SDK
+ * This module uses QIE SDK for all blockchain operations
+ */
 
-export const QIE_CHAIN_ID = 5656;
-export const QIE_CHAIN_ID_HEX = '0x1618';
+import { BrowserProvider } from 'ethers';
+import {
+  createQIEWeb3,
+  createQIESignature,
+  QIEWeb3,
+  QIESignature,
+  QIE_CHAIN_ID,
+  QIE_CHAIN_ID_HEX,
+  QIE_NETWORK,
+} from './qie-sdk';
 
-export const QIE_NETWORK = {
-  chainId: QIE_CHAIN_ID_HEX,
-  chainName: 'QIE Blockchain',
-  nativeCurrency: {
-    name: 'QIE',
-    symbol: 'QIE',
-    decimals: 18,
-  },
-  rpcUrls: ['https://rpc-mainnet.qie.digital'],
-  blockExplorerUrls: ['https://mainnet.qie.digital'],
-};
+// Re-export QIE constants for backward compatibility
+export { QIE_CHAIN_ID, QIE_CHAIN_ID_HEX, QIE_NETWORK };
 
+// Global QIE SDK instances
+let qieWeb3Instance: QIEWeb3 | null = null;
+let qieSignatureInstance: QIESignature | null = null;
+
+/**
+ * Connect wallet using QIE Blockchain SDK
+ * @returns Provider and connected address
+ */
 export async function connectWallet(): Promise<{ provider: BrowserProvider; address: string } | null> {
-  if (typeof window === 'undefined' || !window.ethereum) {
-    alert('Please install MetaMask!');
-    return null;
+  // Use QIE SDK to connect
+  qieWeb3Instance = createQIEWeb3();
+  const result = await qieWeb3Instance.connect();
+  
+  if (result) {
+    // Initialize QIE signature verifier
+    qieSignatureInstance = createQIESignature(result.provider);
   }
-
-  try {
-    const provider = new BrowserProvider(window.ethereum);
-    
-    const accounts = await provider.send('eth_requestAccounts', []);
-    const address = accounts[0];
-
-    await switchToQIENetwork();
-
-    return { provider, address };
-  } catch (error) {
-    console.error('Error connecting wallet:', error);
-    return null;
-  }
+  
+  return result;
 }
 
+/**
+ * Switch to QIE network using QIE Blockchain SDK
+ * @returns True if successful
+ */
 export async function switchToQIENetwork(): Promise<boolean> {
-  if (typeof window === 'undefined' || !window.ethereum) {
-    return false;
+  if (!qieWeb3Instance) {
+    qieWeb3Instance = createQIEWeb3();
   }
-
-  try {
-    await window.ethereum.request({
-      method: 'wallet_switchEthereumChain',
-      params: [{ chainId: QIE_CHAIN_ID_HEX }],
-    });
-    return true;
-  } catch (switchError: any) {
-    if (switchError.code === 4902) {
-      try {
-        await window.ethereum.request({
-          method: 'wallet_addEthereumChain',
-          params: [QIE_NETWORK],
-        });
-        return true;
-      } catch (addError) {
-        console.error('Error adding QIE network:', addError);
-        return false;
-      }
-    }
-    console.error('Error switching network:', switchError);
-    return false;
-  }
+  return await qieWeb3Instance.switchToQIENetwork();
 }
 
+/**
+ * Sign message using QIE Blockchain SDK
+ * @param message Message to sign
+ * @returns Signature hex string
+ */
 export async function signMessage(message: string): Promise<string | null> {
   if (typeof window === 'undefined' || !window.ethereum) {
     return null;
   }
 
   try {
-    const provider = new BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const signature = await signer.signMessage(message);
-    return signature;
+    // Ensure QIE SDK is initialized
+    if (!qieWeb3Instance) {
+      const result = await connectWallet();
+      if (!result) {
+        return null;
+      }
+    }
+
+    // Get provider from QIE SDK
+    const provider = qieWeb3Instance?.getProvider();
+    if (!provider) {
+      return null;
+    }
+
+    // Use QIE SDK to sign message
+    if (!qieSignatureInstance) {
+      qieSignatureInstance = createQIESignature(provider);
+    }
+
+    return await qieSignatureInstance.signMessage(message);
   } catch (error) {
-    console.error('Error signing message:', error);
+    console.error('Error signing message with QIE SDK:', error);
     return null;
   }
 }
