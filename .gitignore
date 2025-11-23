@@ -151,5 +151,4 @@ build/
 backup/
 backups/
 
-# Documentation (keep only README.md)
-# All other .md files should be in git, but we're deleting them from the repo
+
