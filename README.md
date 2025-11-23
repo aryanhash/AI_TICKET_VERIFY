@@ -47,23 +47,23 @@ Imagine you're going to a concert:
 
 ## 🔥 Problems It Solves
 
-### 1. **Ticket Fraud & Scalping** ❌
+### 1. **Ticket Fraud & Scalping** 
 - **Problem**: People buy tickets and resell them at inflated prices or sell fake tickets
 - **Solution**: AI verifies the person matches the ticket owner, preventing unauthorized transfers
 
-### 2. **Counterfeit Tickets** ❌
+### 2. **Counterfeit Tickets** 
 - **Problem**: Fake tickets are easy to create and hard to detect
 - **Solution**: Blockchain ensures every ticket is unique and verifiable
 
-### 3. **Double-Spending** ❌
+### 3. **Double-Spending** 
 - **Problem**: Same ticket used multiple times or sold to multiple people
 - **Solution**: Blockchain's immutable records prevent duplicate usage
 
-### 4. **Manual Verification** ❌
+### 4. **Manual Verification** 
 - **Problem**: Slow, error-prone manual ticket checking at events
 - **Solution**: AI-powered instant verification in seconds
 
-### 5. **High Transaction Costs** ❌
+### 5. **High Transaction Costs** 
 - **Problem**: Ethereum gas fees can be expensive
 - **Solution**: QIE Blockchain offers ultra-low fees (~$0.001 per transaction)
 
@@ -314,7 +314,6 @@ PINATA_SECRET_API_KEY=your-pinata-secret-key
 6. Copy the contract address
 7. Update `QIE_CONTRACT_ADDRESS` in your `.env` file
 
-📖 **Detailed Guide**: See [QIEDEX_TOKEN_CREATOR_GUIDE.md](./QIEDEX_TOKEN_CREATOR_GUIDE.md)
 
 ### Step 7: Configure MetaMask for QIE Network
 
@@ -685,7 +684,7 @@ brew services start mongodb-community
 - Check API key is set correctly
 - Verify API key has credits/quota
 - Check `AI_PROVIDER` is set correctly
-- See [FREE_AI_APIS_GUIDE.md](./FREE_AI_APIS_GUIDE.md) for alternatives
+
 
 #### 7. IPFS upload failed
 - Check Pinata credentials (if using)
@@ -711,14 +710,6 @@ brew services start mongodb-community
 ---
 
 ## 📚 Support & Resources
-
-### Documentation
-- [Complete Documentation](./DOCUMENTATION.md)
-- [Setup Guide](./SETUP.md)
-- [QIEDEX Token Creator Guide](./QIEDEX_TOKEN_CREATOR_GUIDE.md)
-- [QIE Validator Guide](./QIE_VALIDATOR_GUIDE.md)
-- [Verification Guide](./VERIFICATION_GUIDE.md)
-- [MongoDB Setup](./MONGODB_SETUP.md)
 
 ### QIE Blockchain Resources
 - **QIE Documentation**: https://docs.qie.digital
@@ -760,35 +751,6 @@ brew services start mongodb-community
    - How face recognition works
    - AI model comparison
    - Verification accuracy
-
----
-
-## 🚀 Quick Start Summary
-
-```bash
-# 1. Clone and install
-git clone <repo>
-cd PerfectCleanEnd
-python3 -m venv venv && source venv/bin/activate
-cd server && pip install -r requirements.txt
-cd ../client && npm install
-
-# 2. Configure
-# Create server/.env with all required variables
-# Deploy contract via QIEDEX Token Creator
-# Add QIE network to MetaMask
-
-# 3. Start services
-# Terminal 1: Backend
-cd server && python -m uvicorn main:app --reload
-
-# Terminal 2: Frontend
-cd client && npm run dev
-
-# 4. Use the app
-# Open http://localhost:5000
-# Connect wallet, create events, buy tickets!
-```
 
 ---
 
