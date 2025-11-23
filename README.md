@@ -387,7 +387,7 @@ curl -X POST http://localhost:8000/auth/make-organizer/0xYourWalletAddress
 ### For Event Organizers
 
 #### 1. Connect Your Wallet
-- Open http://localhost:5000
+- Open the url...
 - Click "Connect Wallet"
 - Approve MetaMask connection
 - Sign the authentication message
@@ -397,7 +397,7 @@ curl -X POST http://localhost:8000/auth/make-organizer/0xYourWalletAddress
 - Or ask an admin to do it
 
 #### 3. Create an Event
-- Go to http://localhost:5000/organizer/create
+- Go to http://deployedlink
 - Fill in event details:
   - Event title
   - Description
@@ -422,7 +422,6 @@ curl -X POST http://localhost:8000/auth/make-organizer/0xYourWalletAddress
 - Ensure you're on QIE testnet
 
 #### 2. Browse Events
-- Go to http://localhost:5000/events
 - Browse available events
 - Click on an event to see details
 
@@ -434,7 +433,6 @@ curl -X POST http://localhost:8000/auth/make-organizer/0xYourWalletAddress
 - You'll receive a QR code
 
 #### 4. View Your Tickets
-- Go to http://localhost:5000/dashboard
 - See all your purchased tickets
 - Click "Show QR Code" to display the QR code
 
