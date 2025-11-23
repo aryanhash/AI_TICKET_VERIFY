@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { getEvent, mintTicket } from '@/lib/api';
+import { getIPFSGatewayURL } from '@/lib/ipfs';
 
 export default function EventDetail() {
   const router = useRouter();
@@ -9,6 +10,7 @@ export default function EventDetail() {
   const [loading, setLoading] = useState(true);
   const [minting, setMinting] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -81,12 +83,23 @@ export default function EventDetail() {
 
   const availability = event.total_supply - event.sold_count;
 
+  const imageUrl = event ? getIPFSGatewayURL(event.image_url) : '';
+
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="h-64 bg-gradient-to-br from-qie-primary to-qie-secondary flex items-center justify-center text-white text-9xl">
-            🎭
+          <div className="h-64 bg-gradient-to-br from-qie-primary to-qie-secondary flex items-center justify-center text-white text-9xl overflow-hidden">
+            {imageUrl && !imageError ? (
+              <img
+                src={imageUrl}
+                alt={event.title}
+                className="w-full h-full object-cover"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <span>🎭</span>
+            )}
           </div>
 
           <div className="p-8">

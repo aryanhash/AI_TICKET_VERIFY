@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { getIPFSGatewayURL } from '@/lib/ipfs';
 
 interface EventCardProps {
   event: {
@@ -18,11 +19,22 @@ interface EventCardProps {
 export default function EventCard({ event }: EventCardProps) {
   const availability = event.total_supply - event.sold_count;
   const percentageSold = (event.sold_count / event.total_supply) * 100;
+  const imageUrl = getIPFSGatewayURL(event.image_url);
+  const [imageError, setImageError] = useState(false);
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-      <div className="h-48 bg-gradient-to-br from-qie-primary to-qie-secondary flex items-center justify-center text-white text-6xl">
-        🎭
+      <div className="h-48 bg-gradient-to-br from-qie-primary to-qie-secondary flex items-center justify-center text-white text-6xl overflow-hidden">
+        {imageUrl && !imageError ? (
+          <img
+            src={imageUrl}
+            alt={event.title}
+            className="w-full h-full object-cover"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <span>🎭</span>
+        )}
       </div>
       <div className="p-6">
         <h3 className="text-xl font-bold text-gray-900 mb-2">{event.title}</h3>

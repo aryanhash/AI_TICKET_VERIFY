@@ -40,8 +40,9 @@ elif AI_PROVIDER == "huggingface":
     client = "huggingface"  # Special marker for Hugging Face
     model = AI_MODEL or "Salesforce/blip-image-captioning-base"  # Can use vision models
 elif OPENAI_API_KEY:
-    # Use OpenAI
+    # Use OpenAI - ensure we're using the latest API format
     client = OpenAI(api_key=OPENAI_API_KEY)
+    # Use gpt-4o for vision, or gpt-4o-mini for cost efficiency
     model = AI_MODEL or os.getenv("OPENAI_MODEL", "gpt-4o")
 else:
     model = None
@@ -147,16 +148,16 @@ class AIVerifyService:
                                         "type": "text",
                                         "text": """You are a security system verifying if a selfie matches the person in an NFT ticket image. 
 
-Compare the two images and determine:
-1. If they show the same person
-2. The confidence level of the match
+Compare the two images carefully and determine if they show the SAME person.
 
-Respond with ONLY one of these exact phrases:
-- "VERIFIED" if the faces match with high confidence
-- "SUSPICIOUS" if there's some similarity but uncertain
-- "DENIED" if the faces clearly don't match or can't be properly compared
+IMPORTANT: You MUST respond with ONLY one of these exact words (nothing else):
+- VERIFIED (if the faces match the same person)
+- SUSPICIOUS (if there's some similarity but uncertain)
+- DENIED (if the faces don't match or are different people)
 
-Consider facial features, but account for different lighting, angles, and expressions."""
+Consider: facial structure, eye shape, nose, mouth, face shape, hair, skin tone, and distinctive features. Account for different lighting, angles, and expressions. Be accurate and fair - verify when the faces match, deny when they don't.
+
+Your response must start with one of these three words: VERIFIED, SUSPICIOUS, or DENIED."""
                                     },
                                     {
                                         "type": "image",
@@ -178,7 +179,7 @@ Consider facial features, but account for different lighting, angles, and expres
                             }
                         ]
                     )
-                    result_text = (response.content[0].text if response.content else "").strip().upper()
+                    result_text = (response.content[0].text if response.content else "").strip()
                 except Exception as claude_error:
                     return {
                         "verified": False,
@@ -256,13 +257,14 @@ Consider facial features, but account for different lighting, angles, and expres
                                         if feature in selfie_text and feature in ticket_text:
                                             common_features += 1
                                     
-                                    # More lenient threshold - if we find any person features, be more generous
-                                    if common_features >= 2:
+                                    # Balanced threshold - require multiple matching features to verify
+                                    # Need at least 3 matching facial features to verify
+                                    if common_features >= 3:
                                         result_text = "VERIFIED"
-                                    elif common_features >= 1 or (has_person_selfie and has_person_ticket):
-                                        result_text = "VERIFIED"  # More lenient - if both show a person, verify
-                                    else:
+                                    elif common_features >= 2:
                                         result_text = "SUSPICIOUS"
+                                    else:
+                                        result_text = "DENIED"
                             else:
                                 # Fallback: use image-to-text model
                                 hf_model_fallback = "Salesforce/blip-image-captioning-base"
@@ -291,28 +293,36 @@ Consider facial features, but account for different lighting, angles, and expres
                                     has_person_selfie = any(word in selfie_text for word in ["person", "face", "man", "woman", "people", "human", "portrait"])
                                     has_person_ticket = any(word in ticket_text for word in ["person", "face", "man", "woman", "people", "human", "portrait"])
                                     
-                                    # More lenient: if both show a person and have some similarity, verify
+                                    # Balanced verification: require reasonable similarity
                                     if has_person_selfie and has_person_ticket:
-                                        if similarity > 0.15 or len(common_words) >= 3:
+                                        # Need at least 30% similarity OR at least 4 common words to verify
+                                        if similarity >= 0.3 or len(common_words) >= 4:
                                             result_text = "VERIFIED"
-                                        else:
+                                        elif similarity >= 0.2 or len(common_words) >= 2:
                                             result_text = "SUSPICIOUS"
-                                    elif similarity > 0.3:
+                                        else:
+                                            result_text = "DENIED"
+                                    elif similarity >= 0.4:
+                                        # High similarity even without explicit person detection
                                         result_text = "VERIFIED"
-                                    elif similarity > 0.1:
+                                    elif similarity >= 0.25:
                                         result_text = "SUSPICIOUS"
                                     else:
                                         result_text = "DENIED"
                                 else:
-                                    # If API fails, be more lenient - assume verification if we can't determine
-                                    print(f"Hugging Face API returned non-200 status. Selfie: {selfie_response.status_code}, Ticket: {ticket_response.status_code}")
-                                    result_text = "VERIFIED"  # More lenient default - trust the user if API fails
+                                    # If API fails, return error instead of denying
+                                    error_code = selfie_response.status_code or ticket_response.status_code
+                                    if error_code == 410:
+                                        # Model removed/unavailable - return error
+                                        raise Exception(f"Hugging Face model unavailable (410). The model endpoint has been removed. Please use a different AI provider (OpenAI, Gemini, or Claude) or update the model name in .env")
+                                    else:
+                                        print(f"Hugging Face API returned non-200 status. Selfie: {selfie_response.status_code}, Ticket: {ticket_response.status_code}")
+                                        raise Exception(f"Hugging Face API error: HTTP {error_code}. Please check your API key or use a different AI provider.")
                                     
                         except Exception as api_error:
-                            # If the model doesn't support the format, use a simpler approach
-                            print(f"Hugging Face API format error: {api_error}, trying alternative approach")
-                            # Be more lenient - if we can't verify, assume it's okay
-                            result_text = "VERIFIED"  # More lenient default
+                            # If the model doesn't support the format, raise error
+                            print(f"Hugging Face API format error: {api_error}")
+                            raise Exception(f"Hugging Face API error: {str(api_error)}. Please use a different AI provider (OpenAI, Gemini, or Claude) for better face verification.")
                     
                 except Exception as hf_error:
                     error_msg = str(hf_error)
@@ -323,13 +333,21 @@ Consider facial features, but account for different lighting, angles, and expres
                         return {
                             "verified": False,
                             "status": "error",
-                            "reason": f"Hugging Face API rate limit exceeded. Please wait a moment and try again. Free tier has limits."
+                            "reason": f"Hugging Face API rate limit exceeded. Please wait a moment and try again. Free tier has limits. For better face verification, consider using OpenAI, Gemini, or Claude instead."
+                        }
+                    
+                    # Check for model unavailable (410)
+                    if "410" in error_msg or "unavailable" in error_msg.lower() or "removed" in error_msg.lower():
+                        return {
+                            "verified": False,
+                            "status": "error",
+                            "reason": f"Hugging Face model unavailable. The model endpoint has been removed or is not available. Please configure a different AI provider (OpenAI, Gemini, or Claude) in your .env file for proper face verification. Hugging Face is not recommended for face verification."
                         }
                     
                     return {
                         "verified": False,
                         "status": "error",
-                        "reason": f"Hugging Face API error: {error_msg}. The model may be loading. Please try again in a moment."
+                        "reason": f"Hugging Face API error: {error_msg}. For better face verification, please use OpenAI, Gemini, or Claude instead. Configure AI_PROVIDER and the corresponding API key in server/.env"
                     }
             elif AI_PROVIDER == "gemini":
                 # Gemini format: data URIs for images
@@ -338,16 +356,16 @@ Consider facial features, but account for different lighting, angles, and expres
                         "type": "text",
                         "text": """You are a security system verifying if a selfie matches the person in an NFT ticket image. 
 
-Compare the two images and determine:
-1. If they show the same person
-2. The confidence level of the match
+Compare the two images carefully and determine if they show the SAME person.
 
-Respond with ONLY one of these exact phrases:
-- "VERIFIED" if the faces match with high confidence
-- "SUSPICIOUS" if there's some similarity but uncertain
-- "DENIED" if the faces clearly don't match or can't be properly compared
+IMPORTANT: You MUST respond with ONLY one of these exact words (nothing else):
+- VERIFIED (if the faces match the same person)
+- SUSPICIOUS (if there's some similarity but uncertain)
+- DENIED (if the faces don't match or are different people)
 
-Consider facial features, but account for different lighting, angles, and expressions."""
+Consider: facial structure, eye shape, nose, mouth, face shape, hair, skin tone, and distinctive features. Account for different lighting, angles, and expressions. Be accurate and fair - verify when the faces match, deny when they don't.
+
+Your response must start with one of these three words: VERIFIED, SUSPICIOUS, or DENIED."""
                     },
                     {
                         "type": "image_url",
@@ -374,7 +392,7 @@ Consider facial features, but account for different lighting, angles, and expres
                     max_tokens=300
                 )
                 
-                result_text = (response.choices[0].message.content or "").strip().upper()
+                result_text = (response.choices[0].message.content or "").strip()
             else:
                 # OpenAI format (default)
                 image_content = [
@@ -382,16 +400,16 @@ Consider facial features, but account for different lighting, angles, and expres
                         "type": "text",
                         "text": """You are a security system verifying if a selfie matches the person in an NFT ticket image. 
 
-Compare the two images and determine:
-1. If they show the same person
-2. The confidence level of the match
+Compare the two images carefully and determine if they show the SAME person.
 
-Respond with ONLY one of these exact phrases:
-- "VERIFIED" if the faces match with high confidence
-- "SUSPICIOUS" if there's some similarity but uncertain
-- "DENIED" if the faces clearly don't match or can't be properly compared
+IMPORTANT: You MUST respond with ONLY one of these exact words (nothing else):
+- VERIFIED (if the faces match the same person)
+- SUSPICIOUS (if there's some similarity but uncertain)
+- DENIED (if the faces don't match or are different people)
 
-Consider facial features, but account for different lighting, angles, and expressions."""
+Consider: facial structure, eye shape, nose, mouth, face shape, hair, skin tone, and distinctive features. Account for different lighting, angles, and expressions. Be accurate and fair - verify when the faces match, deny when they don't.
+
+Your response must start with one of these three words: VERIFIED, SUSPICIOUS, or DENIED."""
                     },
                     {
                         "type": "image_url",
@@ -420,15 +438,46 @@ Consider facial features, but account for different lighting, angles, and expres
                     max_tokens=300
                 )
                 
-                result_text = (response.choices[0].message.content or "").strip().upper()
+                result_text = (response.choices[0].message.content or "").strip()
             
-            if "VERIFIED" in result_text:
+            # Parse result - look for keywords in the response
+            result_text_upper = result_text.upper()
+            print(f"AI Response (raw): {result_text}")
+            print(f"AI Response (upper): {result_text_upper}")
+            
+            # Check for verified - be more lenient with matching
+            if ("VERIFIED" in result_text_upper or 
+                ("MATCH" in result_text_upper and ("SAME" in result_text_upper or "PERSON" in result_text_upper)) or
+                ("YES" in result_text_upper and "SAME" in result_text_upper) or
+                ("CONFIRM" in result_text_upper and "MATCH" in result_text_upper) or
+                ("IDENTICAL" in result_text_upper) or
+                ("THEY ARE THE SAME" in result_text_upper)):
                 status = "verified"
                 verified = True
-            elif "SUSPICIOUS" in result_text:
+                print("✅ Parsed as VERIFIED")
+            # Check for suspicious
+            elif ("SUSPICIOUS" in result_text_upper or 
+                  "UNCERTAIN" in result_text_upper or 
+                  ("SIMILAR" in result_text_upper and "NOT SURE" in result_text_upper) or
+                  ("MAYBE" in result_text_upper and "MATCH" in result_text_upper)):
                 status = "suspicious"
                 verified = False
+                print("⚠️ Parsed as SUSPICIOUS")
+            # Check for denied
+            elif ("DENIED" in result_text_upper or 
+                  "DON'T MATCH" in result_text_upper or 
+                  "DO NOT MATCH" in result_text_upper or
+                  "DIFFERENT" in result_text_upper or 
+                  "NOT MATCH" in result_text_upper or
+                  "NOT THE SAME" in result_text_upper or
+                  ("NO" in result_text_upper and "MATCH" in result_text_upper)):
+                status = "denied"
+                verified = False
+                print("❌ Parsed as DENIED")
             else:
+                # Default to denied if we can't parse the response
+                print(f"⚠️ Warning: Could not parse AI response: {result_text}")
+                print(f"   Defaulting to DENIED for security")
                 status = "denied"
                 verified = False
             
