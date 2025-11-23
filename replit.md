@@ -10,14 +10,19 @@ A full-stack decentralized event ticketing platform built for QIE Blockchain wit
 
 ## Recent Changes (November 23, 2025)
 
+### Complete MVP Deployment ✅
+
 - ✅ Initial project setup with Next.js frontend and FastAPI backend
-- ✅ Smart contract (ERC721) created for NFT tickets
+- ✅ Smart contract (ERC721) created for NFT tickets with deployment guide
 - ✅ Web3 integration with QIE Blockchain (Chain ID 5656)
 - ✅ MongoDB models for users, events, tickets, verifications
-- ✅ IPFS service for decentralized image storage
-- ✅ OpenAI Vision API integration for selfie verification
+- ✅ IPFS service upgraded to httpx async client with proper error handling
+- ✅ OpenAI Vision API integration with configuration checks and fallback
 - ✅ Complete frontend with wallet connection, event browsing, ticket purchasing
 - ✅ QR code generation and scanning for verification
+- ✅ Fixed Next.js module resolution and TailwindCSS PostCSS configuration
+- ✅ Both workflows (Frontend & Backend) running successfully
+- ✅ Created comprehensive SETUP.md documentation with deployment guide
 
 ## Project Architecture
 
