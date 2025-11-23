@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from server.models.ticket import TicketMintRequest
-from server.database import tickets_collection, events_collection
-from server.services.blockchain import blockchain_service
-from server.services.ipfs_service import ipfs_service
+from models.ticket import TicketMintRequest
+from database import tickets_collection, events_collection
+from services.blockchain import blockchain_service
+from services.ipfs_service import ipfs_service
 from datetime import datetime
 from bson import ObjectId
 import json
@@ -23,7 +23,7 @@ async def mint_ticket(
         raise HTTPException(status_code=400, detail="Event sold out")
     
     image_data = await buyer_image.read()
-    buyer_image_uri = await ipfs_service.upload_file(image_data, buyer_image.filename)
+    buyer_image_uri = await ipfs_service.upload_file(image_data, buyer_image.filename or "buyer_image.jpg")
     
     if not buyer_image_uri:
         raise HTTPException(status_code=500, detail="Failed to upload buyer image")

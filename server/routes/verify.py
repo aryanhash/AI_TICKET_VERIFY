@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from server.database import verifications_collection, tickets_collection
-from server.services.ai_verify import ai_verify_service
-from server.services.blockchain import blockchain_service
+from database import verifications_collection, tickets_collection
+from services.ai_verify import ai_verify_service
+from services.blockchain import blockchain_service
 from datetime import datetime
 import json
 

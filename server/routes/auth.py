@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
-from server.models.user import UserCreate
-from server.database import users_collection
-from server.services.blockchain import blockchain_service
+from models.user import UserCreate
+from database import users_collection
+from services.blockchain import blockchain_service
 from datetime import datetime
 
 router = APIRouter(prefix="/auth", tags=["auth"])

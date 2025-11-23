@@ -1,8 +1,12 @@
 from web3 import Web3
-from web3.middleware import geth_poa_middleware
 from eth_account.messages import encode_defunct
 import json
 import os
+
+try:
+    from web3.middleware import geth_poa_middleware
+except ImportError:
+    geth_poa_middleware = None
 
 QIE_RPC_URL = os.getenv("QIE_RPC_URL", "https://rpc-mainnet.qie.digital")
 QIE_CHAIN_ID = 5656
@@ -53,7 +57,8 @@ NFT_ABI = [
 class BlockchainService:
     def __init__(self):
         self.w3 = Web3(Web3.HTTPProvider(QIE_RPC_URL))
-        self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+        if geth_poa_middleware:
+            self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
         
         if CONTRACT_ADDRESS:
             self.contract = self.w3.eth.contract(

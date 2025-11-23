@@ -1,16 +1,28 @@
 from openai import OpenAI
 import os
 import base64
-import requests
+import httpx
 from .ipfs_service import ipfs_service
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", ""))
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")
+
+client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 class AIVerifyService:
     async def verify_selfie(self, selfie_data: bytes, nft_metadata_uri: str) -> dict:
+        if not client:
+            return {
+                "verified": False,
+                "status": "error",
+                "reason": "OpenAI API key not configured"
+            }
+        
         try:
             metadata_url = ipfs_service.get_ipfs_url(nft_metadata_uri)
-            metadata_response = requests.get(metadata_url)
+            
+            async with httpx.AsyncClient(timeout=30.0) as http_client:
+                metadata_response = await http_client.get(metadata_url)
             
             if metadata_response.status_code != 200:
                 return {
@@ -34,7 +46,7 @@ class AIVerifyService:
             selfie_base64 = base64.b64encode(selfie_data).decode('utf-8')
             
             response = client.chat.completions.create(
-                model="gpt-4o",
+                model=OPENAI_MODEL,
                 messages=[
                     {
                         "role": "user",
@@ -74,7 +86,7 @@ Consider facial features, but account for different lighting, angles, and expres
                 max_tokens=300
             )
             
-            result_text = response.choices[0].message.content.strip().upper()
+            result_text = (response.choices[0].message.content or "").strip().upper()
             
             if "VERIFIED" in result_text:
                 status = "verified"

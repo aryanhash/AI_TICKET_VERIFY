@@ -1,4 +1,4 @@
-import requests
+import httpx
 import json
 import os
 from typing import Optional
@@ -26,24 +26,25 @@ class IPFSService:
         
         try:
             files = {
-                'file': (filename, file_data)
+                'file': (filename, file_data, 'application/octet-stream')
             }
             
-            response = requests.post(
-                PINATA_PIN_FILE_URL,
-                files=files,
-                headers=self.headers
-            )
-            
-            if response.status_code == 200:
-                ipfs_hash = response.json()['IpfsHash']
-                return f"ipfs://{ipfs_hash}"
-            else:
-                print(f"IPFS upload error: {response.text}")
-                return None
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    PINATA_PIN_FILE_URL,
+                    files=files,
+                    headers=self.headers
+                )
+                
+                if response.status_code == 200:
+                    ipfs_hash = response.json()['IpfsHash']
+                    return f"ipfs://{ipfs_hash}"
+                else:
+                    print(f"IPFS upload error: {response.text}")
+                    raise Exception(f"IPFS upload failed with status {response.status_code}")
         except Exception as e:
             print(f"IPFS upload exception: {e}")
-            return None
+            raise Exception(f"Failed to upload to IPFS: {str(e)}")
     
     async def upload_json(self, metadata: dict) -> Optional[str]:
         if not self.headers:
@@ -51,26 +52,27 @@ class IPFSService:
             return f"ipfs://QmMockMetadata{hash(json.dumps(metadata)) % 10000}"
         
         try:
-            response = requests.post(
-                PINATA_PIN_JSON_URL,
-                json={
-                    "pinataContent": metadata,
-                    "pinataMetadata": {
-                        "name": "NFT Ticket Metadata"
-                    }
-                },
-                headers=self.headers
-            )
-            
-            if response.status_code == 200:
-                ipfs_hash = response.json()['IpfsHash']
-                return f"ipfs://{ipfs_hash}"
-            else:
-                print(f"IPFS JSON upload error: {response.text}")
-                return None
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    PINATA_PIN_JSON_URL,
+                    json={
+                        "pinataContent": metadata,
+                        "pinataMetadata": {
+                            "name": "NFT Ticket Metadata"
+                        }
+                    },
+                    headers=self.headers
+                )
+                
+                if response.status_code == 200:
+                    ipfs_hash = response.json()['IpfsHash']
+                    return f"ipfs://{ipfs_hash}"
+                else:
+                    print(f"IPFS JSON upload error: {response.text}")
+                    raise Exception(f"IPFS JSON upload failed with status {response.status_code}")
         except Exception as e:
             print(f"IPFS JSON upload exception: {e}")
-            return None
+            raise Exception(f"Failed to upload metadata to IPFS: {str(e)}")
     
     def get_ipfs_url(self, ipfs_uri: str) -> str:
         if ipfs_uri.startswith("ipfs://"):

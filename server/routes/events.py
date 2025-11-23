@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from server.models.event import EventCreate
-from server.database import events_collection, users_collection
-from server.services.ipfs_service import ipfs_service
+from models.event import EventCreate
+from database import events_collection, users_collection
+from services.ipfs_service import ipfs_service
 from datetime import datetime
 from bson import ObjectId
 from typing import Optional
@@ -24,7 +24,7 @@ async def create_event(
         raise HTTPException(status_code=403, detail="Only organizers can create events")
     
     image_data = await image.read()
-    image_uri = await ipfs_service.upload_file(image_data, image.filename)
+    image_uri = await ipfs_service.upload_file(image_data, image.filename or "event_image.jpg")
     
     if not image_uri:
         raise HTTPException(status_code=500, detail="Failed to upload image to IPFS")

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from server.routes import auth, events, tickets, verify
+from routes import auth, events, tickets, verify
 
 app = FastAPI(title="NFT Ticketing API", version="1.0.0")
 
