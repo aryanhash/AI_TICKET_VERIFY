@@ -7,6 +7,9 @@
 
 ---
 
+<img width="1693" height="867" alt="image" src="https://github.com/user-attachments/assets/15cadf41-aa59-4856-8557-9c3d681ca253" />
+
+
 ## 📖 Table of Contents
 
 - [What is This Project?](#what-is-this-project)
