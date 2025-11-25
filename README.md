@@ -275,8 +275,7 @@ Create a `.env` file in the `server/` directory:
 ```env
 # MongoDB Connection
 MONGO_URL=mongodb://localhost:27017/
-# Or for MongoDB Atlas:
-# MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/
+
 
 # QIE Blockchain Configuration
 QIE_RPC_URL=https://rpc1testnet.qie.digital
